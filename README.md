@@ -1,6 +1,6 @@
-# {Company} {Api Name} OpenAPI Description
+# Enveloop API OpenAPI Description
 
-This repository contains the [OpenAPI description](/openapi.yml) for <{docs_url}>.
+This repository contains the [OpenAPI description](/openapi.yml) for <https://docs.enveloop.com/enveloop-api/introduction-to-the-api>.
 
 ## What is OpenAPI?
 
@@ -10,4 +10,4 @@ From the [OpenAPI Specification](https://github.com/OAI/OpenAPI-Specification):
 
 ## Issues
 
-Feel free to [leave an issue](https://github.com/fern-{company}/{company}-openapi/issues) on this repo.
+Feel free to [leave an issue](https://github.com/fern-enveloop/enveloop-openapi/issues) on this repo.
