@@ -1,0 +1,178 @@
+openapi: 3.0.1
+info:
+  title: api
+  version: 0.0.0
+paths:
+  /messages/:
+    post:
+      operationId: MessageService.send
+      tags:
+        - Messages
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendMessageResponse'
+              examples:
+                Example1:
+                  value:
+                    to: bob@test.com
+                    from: Northwind App <app@northwind.com>
+                    body: >-
+                      <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN"><html ...
+                      </html>
+      summary: Send messages to recipients
+      security: &ref_0
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageRequest'
+            examples:
+              Example1:
+                value:
+                  template: user-welcome
+                  to: bob@test.com
+                  from: Northwind App <app@northwind.com>
+                  subject: Welcome to Northwind
+                  templateVariables:
+                    name: Bob Vance
+  /templates/{slug}:
+    get:
+      description: >-
+        Get information about a template including the body of the template and
+        any user defined variables that the template expect.
+      operationId: TemplateService.get
+      tags:
+        - Templates
+      parameters:
+        - name: slug
+          in: path
+          description: >-
+            The `slug` is required in the URL and can be found for a template by
+            looking in the right drawer on the template edit.
+          required: true
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: https://api.enveloop.com/templates/customer-invoice
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Template'
+              examples:
+                Example1:
+                  value:
+                    templateVariables:
+                      - invoiceAmount
+                      - invoiceNumber
+                    body: >-
+                      <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN"><html ...
+                      </html>
+      summary: Get template
+      security: *ref_0
+components:
+  schemas:
+    SendMessageRequest:
+      type: object
+      properties:
+        template:
+          type: string
+          description: >-
+            The `template` field is required and should be the template slug you
+            wish to send.
+        to:
+          type: string
+          description: >-
+            The `to` field is required to send a message. It should be a single
+            recipient.
+        from:
+          type: string
+          description: >
+            The `from` field is optional on the API call as long as it is set on
+            either the *Template* or the *Provider*.
+
+            The order of precedence for the from field on a message is:
+              1. from attribute in the API call
+              2. If not set in API call it will look in *Template* defaults
+              3. If not set in *Template* it will look in *Provider* defaults
+              4. If not set in 1-3 it will return an error and fail to send *Message*
+        subject:
+          type: string
+          description: >-
+            The `subject` field is optional on the API call as long as it is set
+            in the *Template* defaults.
+        templateVariables:
+          type: object
+          additionalProperties:
+            type: string
+          description: >
+            The `templateVariables` field accepts a hash/object of variables and
+            text to replace in the template.
+
+            For example if you have the text `Hello {{user}}` in your template
+            and pass `{ user: "Bob" }` as `templateVariables` then the template
+            will render `Hello Bob`
+      required:
+        - template
+        - to
+        - templateVariables
+    SendMessageResponse:
+      type: object
+      properties:
+        to:
+          type: string
+          description: The recipient of the message
+        from:
+          type: string
+          description: The from address of the message sent
+        body:
+          type: string
+          description: A preview of the body of the message delivered to the recipient
+      required:
+        - to
+        - from
+        - body
+    Template:
+      type: object
+      properties:
+        templateVariables:
+          type: array
+          items:
+            $ref: '#/components/schemas/Variable'
+          description: An array of the user defined variables found in the template
+        body:
+          type: string
+          description: >-
+            A preview of the body of the message with `{{ variables }}` intact
+            like you would see at in the Enveloop editor.
+      required:
+        - templateVariables
+        - body
+    Variable:
+      type: string
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+servers:
+  - url: https://api.enveloop.com
+    description: >-
+      Production (Production tokens begin with `live_` and will send actual
+      messages with the configured provider.)
+  - url: https://sandbox.enveloop.com
+    description: >-
+      Sandbox (Sandbox token begin with `test_` and only mock the sending
+      action.  Therefore, calls made from your app, using your sandbox token, do
+      not connect to the provider on the project. 
+
+      )
